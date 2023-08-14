@@ -1,6 +1,7 @@
 const vocabulariesMapping = require('./vocabularies.mapping')
 
 const triplesMapping = (wayMapping,schema,triples) =>{
+
     //group all triples with same subject (same thing / instance)
     const subjects = Array.from(new Set(triples.map(triple => triple.s.value))).map(e =>({
         s: e
@@ -9,7 +10,6 @@ const triplesMapping = (wayMapping,schema,triples) =>{
     //request
     if(wayMapping == 1){
         return [];
-
     }
 
     //response
@@ -17,8 +17,10 @@ const triplesMapping = (wayMapping,schema,triples) =>{
         triples.map(triple => {
             for(let subject of subjects){
                 if(triple.s.value === subject.s) {
-                    const mappingVoca = vocabulariesMapping(wayMapping,schema,triple.p.value);
-                    if( mappingVoca){ subject[mappingVoca] = triple.o.value;
+                    const mappingVoca = vocabulariesMapping(wayMapping,schema,triple.p.value);//find corresponding key
+                    if( mappingVoca)
+                    { 
+                        subject[mappingVoca] = triple.o.value;
                     }
                 }
             }

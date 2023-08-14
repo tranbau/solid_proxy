@@ -8,10 +8,16 @@ WHERE {
      ?p ?o .
 }`;
 
+const getMaxDrugIdQuery = () => `
+PREFIX fhir: <http://hl7.org/fhir/>
+SELECT (MAX(?o) As ?nextId)
+WHERE {
+  ?s fhir:MedicationKnowledge_id ?o ;
+}`;
 
-const createDrugQuery = (drugInfor) => {
+
+const createDrugQuery = (drugId, drugInfor) => {
   const { drugName, registerCode, apothecapy, registerCompany } = drugInfor;
-  const drugId = 2;
   return `
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -29,7 +35,7 @@ const createDrugQuery = (drugInfor) => {
     }`;
 };
 
-const updateDrugQuery = (id, drugInfor) => {
+const updateDrugQuery = (drugId, drugInfor) => {
   const { drugName, registerCode, apothecapy, registerCompany } = drugInfor;
   return `
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
@@ -37,24 +43,37 @@ const updateDrugQuery = (id, drugInfor) => {
     PREFIX fhir: <http://hl7.org/fhir#>
     PREFIX drug: <https://tranbau.solidcommunity.net/vaipe/drugs#>
 
-    DELETE * 
+    DELETE {?s ?p ?o}
     
-    INSERT DATA {
-        drug:drugName rdf:type fhir:MedicationKnowledge;
+    INSERT {
+        drug:drugName${drugId} rdf:type fhir:MedicationKnowledge;
         rdfs:label "Drug information";
-        fhir:MedicationKnowledge_id "${id}";
+        fhir:MedicationKnowledge_id "${drugId}";
         fhir:MedicationKnowledge_name "${drugName}";
         fhir:Medication_code "${registerCode}";
         fhir:MedicationKnowledge_author "${apothecapy}";
         fhir:Medication_marketingAuthorizationHolder "${registerCompany}".
+    }
+    WHERE {
+      ?s fhir:MedicationKnowledge_id "${drugId}" ;
+         ?p ?o .
     }`;
 };
 
-const deleteDrugQuery = (drugInfor) => {};
+const deleteDrugQuery = (drugId) => {
+  return `
+  PREFIX fhir: <http://hl7.org/fhir/>
+  DELETE 
+  WHERE {
+    ?s fhir:MedicationKnowledge_id "${drugId}" ;
+       ?p ?o .
+  }`;
+};
 
 module.exports = {
   getDrugsQuery,
   getDrugByIdQuery,
+  getMaxDrugIdQuery,
   createDrugQuery,
   updateDrugQuery,
   deleteDrugQuery,

@@ -1,15 +1,17 @@
 const QueryEngine = require("@comunica/query-sparql-solid").QueryEngine;
 
 const myEngine = new QueryEngine();
+
+// sparqlQuery with source and authenticated session
+//For GET
 const sparqlQuery = async (query, source, session) => {
   const bindingsStream = await myEngine.queryBindings(query, {
-    sources: [source], // Sets your profile as query source
+    sources: [source], 
     "@comunica/actor-http-inrupt-solid-client-authn:session": session,
   });
 
   bindingsStream
     .on("data", async (binding) => {
-      console.log("Fetching data...");
     })
     .on("end", () => {
       console.log("Done");
@@ -19,26 +21,22 @@ const sparqlQuery = async (query, source, session) => {
       return "error";
     });
 
-  const data = (await bindingsStream.toArray()).map(e => e.entries);
+  const data = (await bindingsStream.toArray());
   return data;
 };
 
+//For POST, PUT, DELETE
 const sparqlUpdate = async (query, source, session) => {
-  await myEngine
-    .queryVoid(query, {
-        sources : {source},
-        destination: { type: 'sparql', value:source},
-      "@comunica/actor-http-inrupt-solid-client-authn:session": session,
-    })
-    .then((result) => {
-      console.log("Done");
-      return { succes: "Updated successfully" };
-    })
-    .catch((error) => {
-      console.log(error);
-      return { error: error.message };
+  try {
+    const result = await myEngine.queryVoid(query, {
+      sources: [source],
+      destination: { type: 'sparql', value: source },
+      '@comunica/actor-http-inrupt-solid-client-authn:session': session,
     });
-   
+    return 'Successfully';
+  } catch (error) {
+    return error.message ;
+  }
 };
 
 module.exports = {
